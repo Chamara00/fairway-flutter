@@ -27,6 +27,14 @@ class ApiClient {
     return res.data ?? const {};
   }
 
+  Future<List<dynamic>> getList(
+    String path, {
+    Map<String, dynamic>? query,
+  }) async {
+    final res = await _dio.get<List<dynamic>>(path, queryParameters: query);
+    return res.data ?? const [];
+  }
+
   Future<Map<String, dynamic>> post(
     String path, {
     required Map<String, dynamic> body,
