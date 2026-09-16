@@ -45,3 +45,8 @@ class ApiException implements Exception {
   @override
   String toString() => message;
 }
+
+extension ErrorToApiException on Object {
+  ApiException get asApiException =>
+      this is ApiException ? this as ApiException : ApiException.from(this);
+}

@@ -99,6 +99,7 @@ class ListingRepository {
     required double price,
     required String description,
     required int stock,
+    required String condition,
   }) async {
     try {
       final res = await _api.post(

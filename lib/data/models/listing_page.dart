@@ -1,7 +1,7 @@
 import 'listing.dart';
 
 class ListingPage {
-  ListingPage({
+  const ListingPage({
     required this.items,
     required this.total,
     required this.skip,
@@ -13,7 +13,7 @@ class ListingPage {
   final int skip;
   final int limit;
 
-  ListingPage.empty() : items = const [], total = 0, skip = 0, limit = 0;
+  const ListingPage.empty() : items = const [], total = 0, skip = 0, limit = 0;
 
   bool get hasMore => skip + items.length < total;
 

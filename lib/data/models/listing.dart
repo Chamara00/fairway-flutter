@@ -45,6 +45,7 @@ class Listing {
     this.returnPolicy,
     this.availabilityStatus,
     this.tags = const [],
+    this.providedCondition,
   });
 
   final int id;
@@ -65,8 +66,17 @@ class Listing {
   final String? returnPolicy;
   final String? availabilityStatus;
   final List<String> tags;
+  final String? providedCondition;
 
-  String get condition => stock > 50 ? 'New' : 'Used - good';
+  String get condition =>
+      providedCondition ?? (stock > 50 ? 'New' : 'Used - good');
+
+  static const conditions = <String>[
+    'New',
+    'Used - like new',
+    'Used - good',
+    'Used - fair',
+  ];
 
   List<String> get galleryImages {
     if (images.isNotEmpty) return images;
@@ -107,6 +117,7 @@ class Listing {
     returnPolicy: json['returnPolicy'] as String?,
     availabilityStatus: json['availabilityStatus'] as String?,
     tags: (json['tags'] as List?)?.cast<String>() ?? const [],
+    providedCondition: json['condition'] as String?,
   );
 
   Map<String, dynamic> toJson() => {
@@ -128,5 +139,6 @@ class Listing {
     'returnPolicy': returnPolicy,
     'availabilityStatus': availabilityStatus,
     'tags': tags,
+    'condition': providedCondition,
   };
 }

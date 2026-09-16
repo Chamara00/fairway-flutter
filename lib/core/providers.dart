@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../data/listing_cache.dart';
 import '../data/listing_repository.dart';
+import '../data/models/listing.dart';
 import 'api_client.dart';
 
 final sharedPrefsProvider = Provider<SharedPreferences>(
@@ -35,3 +36,15 @@ final connectivityProvider = StreamProvider<bool>((ref) async* {
   yield isOnline(await connectivity.checkConnectivity());
   yield* connectivity.onConnectivityChanged.map(isOnline);
 });
+
+final createdListingsProvider =
+    NotifierProvider<CreatedListings, Map<int, Listing>>(CreatedListings.new);
+
+class CreatedListings extends Notifier<Map<int, Listing>> {
+  @override
+  Map<int, Listing> build() => const {};
+
+  void add(Listing listing) => state = {...state, listing.id: listing};
+
+  Listing? byId(int id) => state[id];
+}
