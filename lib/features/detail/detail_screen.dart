@@ -113,11 +113,13 @@ class _Content extends StatelessWidget {
                       color: theme.colorScheme.primary,
                     ),
                   ),
-                  const SizedBox(width: AppTheme.gap),
-                  Chip(
-                    label: Text(listing.condition),
-                    visualDensity: VisualDensity.compact,
-                  ),
+                  if (listing.providedCondition != null) ...[
+                    const SizedBox(width: AppTheme.gap),
+                    Chip(
+                      label: Text(listing.condition),
+                      visualDensity: VisualDensity.compact,
+                    ),
+                  ],
                 ],
               ),
               const SizedBox(height: AppTheme.pad),

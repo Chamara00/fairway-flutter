@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../app/router.dart';
 import '../../app/theme.dart';
+import '../favourites/favourites_controller.dart';
 import '../shared/async_view.dart';
 import 'listings_controller.dart';
 import 'widgets/filter_bar.dart';
@@ -51,6 +52,7 @@ class _ListingsScreenState extends ConsumerState<ListingsScreen> {
   Widget build(BuildContext context) {
     final state = ref.watch(listingsControllerProvider);
     final controller = ref.read(listingsControllerProvider.notifier);
+    final favouritesOnly = ref.watch(favouritesFilterProvider);
 
     ref.listen(listingsControllerProvider, (previous, next) {
       final error = next.error;
@@ -69,37 +71,59 @@ class _ListingsScreenState extends ConsumerState<ListingsScreen> {
       }
     });
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Fairway'),
-        actions: [
-          if (state.hasFilters)
+    return PopScope(
+      canPop: !favouritesOnly,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop && favouritesOnly) {
+          ref.read(favouritesFilterProvider.notifier).state = false;
+        }
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('Fairway'),
+          actions: [
             IconButton(
-              icon: const Icon(Icons.filter_alt_off_outlined),
-              tooltip: 'Clear filters',
-              onPressed: controller.clearFilters,
+              icon: Icon(
+                favouritesOnly ? Icons.favorite : Icons.favorite_border,
+              ),
+              tooltip: favouritesOnly ? 'Show all listings' : 'Favourites only',
+              color: favouritesOnly
+                  ? Theme.of(context).colorScheme.primary
+                  : null,
+              onPressed: () => ref
+                  .read(favouritesFilterProvider.notifier)
+                  .update((on) => !on),
             ),
-        ],
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => context.push(AppRoutes.create),
-        icon: const Icon(Icons.add),
-        label: const Text('Sell'),
-      ),
-      body: Column(
-        children: [
-          if (state.isOffline)
-            OfflineBanner(cachedAt: state.cachedAt, onRetry: controller.load),
-          const FilterBar(),
-          Expanded(
-            child: _Body(
-              state: state,
-              controller: controller,
-              scrollController: _scrollController,
-              columnsFor: _columnsFor,
+            if (state.hasFilters && !favouritesOnly)
+              IconButton(
+                icon: const Icon(Icons.filter_alt_off_outlined),
+                tooltip: 'Clear filters',
+                onPressed: controller.clearFilters,
+              ),
+          ],
+        ),
+        floatingActionButton: FloatingActionButton.extended(
+          onPressed: () => context.push(AppRoutes.create),
+          icon: const Icon(Icons.add),
+          label: const Text('Sell'),
+        ),
+        body: Column(
+          children: [
+            if (state.isOffline)
+              OfflineBanner(cachedAt: state.cachedAt, onRetry: controller.load),
+            if (!favouritesOnly) const FilterBar(),
+            Expanded(
+              child: favouritesOnly
+                  ? const _FavouritesGrid()
+                  : _Body(
+                      state: state,
+                      controller: controller,
+                      scrollController: _scrollController,
+                      columnsFor: _columnsFor,
+                    ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -183,6 +207,53 @@ class _Body extends StatelessWidget {
           );
         },
       ),
+    );
+  }
+}
+
+class _FavouritesGrid extends ConsumerWidget {
+  const _FavouritesGrid();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final favourites = ref.watch(favouritesProvider).values.toList();
+
+    if (favourites.isEmpty) {
+      return const StatusView(
+        icon: Icons.favorite_border,
+        title: 'No favourites yet',
+        message: 'Tap the heart on a listing to save it here.',
+      );
+    }
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final columns = constraints.maxWidth >= 900
+            ? 4
+            : constraints.maxWidth >= 600
+            ? 3
+            : 2;
+        final tileWidth =
+            (constraints.maxWidth -
+                AppTheme.pad * 2 -
+                AppTheme.gap * (columns - 1)) /
+            columns;
+
+        return GridView.builder(
+          padding: const EdgeInsets.all(AppTheme.pad),
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: columns,
+            crossAxisSpacing: AppTheme.gap,
+            mainAxisSpacing: AppTheme.gap,
+            mainAxisExtent: tileWidth + 118,
+          ),
+          itemCount: favourites.length,
+          itemBuilder: (context, i) => ListingCard(
+            listing: favourites[i],
+            onTap: () => context.push(AppRoutes.listingPath(favourites[i].id)),
+          ),
+        );
+      },
     );
   }
 }

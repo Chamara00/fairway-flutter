@@ -81,14 +81,21 @@ class ListingsController extends Notifier<ListingsState> {
   ListingsState build() {
     ref.onDispose(() => _debounce?.cancel());
     Future.microtask(load);
-    return const ListingsState();
+    // Starts loading: load() runs a microtask later, and without this the
+    // first frame would briefly render the empty state.
+    return const ListingsState(isLoading: true);
   }
 
   ListingRepository get _repo => ref.read(listingRepositoryProvider);
 
-  Future<void> load() async {
+  Future<void> load({bool resetItems = false}) async {
     final id = ++_requestId;
-    state = state.copyWith(isLoading: true, clearError: true, isOffline: false);
+    state = state.copyWith(
+      page: resetItems ? const ListingPage.empty() : null,
+      isLoading: true,
+      clearError: true,
+      isOffline: false,
+    );
 
     try {
       final page = await _repo.fetchListings(
@@ -151,21 +158,23 @@ class ListingsController extends Notifier<ListingsState> {
     _debounce?.cancel();
     _debounce = Timer(debounceDelay, () {
       if (value == state.search) return;
-      state = state.copyWith(search: value);
-      load();
+      // The API cannot combine a search term with a category, so starting a
+      // search clears the category rather than leaving a stale one on screen.
+      state = state.copyWith(search: value, clearCategory: value.isNotEmpty);
+      load(resetItems: true);
     });
   }
 
   void onCategoryChanged(String? category) {
     if (category == state.category) return;
     state = state.copyWith(category: category, clearCategory: category == null);
-    load();
+    load(resetItems: true);
   }
 
   void onSortChanged(PriceSort sort) {
     if (sort == state.sort) return;
     state = state.copyWith(sort: sort);
-    load();
+    load(resetItems: true);
   }
 
   void clearFilters() {
@@ -175,7 +184,7 @@ class ListingsController extends Notifier<ListingsState> {
       clearCategory: true,
       sort: PriceSort.none,
     );
-    load();
+    load(resetItems: true);
   }
 
   Future<void> refresh() => load();

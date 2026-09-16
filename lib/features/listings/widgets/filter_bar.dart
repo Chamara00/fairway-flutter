@@ -107,7 +107,9 @@ class _CategoryFilter extends ConsumerWidget {
             value: state.category,
             isExpanded: true,
             isDense: true,
-            hint: const Text('All categories'),
+            hint: Text(
+              searching ? 'Not available while searching' : 'All categories',
+            ),
             onChanged: searching ? null : controller.onCategoryChanged,
             items: [
               const DropdownMenuItem<String?>(

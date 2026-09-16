@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/api_exception.dart';
 import '../../core/providers.dart';
 import '../../data/models/listing.dart';
+import '../favourites/favourites_controller.dart';
 import '../listings/listings_controller.dart';
 
 final listingDetailProvider =
@@ -31,6 +32,7 @@ class ListingDetailController extends FamilyAsyncNotifier<Listing, int> {
     try {
       await ref.read(listingRepositoryProvider).deleteListing(arg);
       ref.read(listingsControllerProvider.notifier).removeLocally(arg);
+      ref.read(favouritesProvider.notifier).remove(arg);
       return null;
     } on ApiException catch (e) {
       return e;
