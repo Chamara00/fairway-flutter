@@ -4,6 +4,8 @@ A small golf-equipment marketplace built with Flutter, backed by the
 [DummyJSON](https://dummyjson.com/products) API. Browse listings, view a
 listing, and post a new one.
 
+**[Screen recording](https://drive.google.com/drive/folders/1ihWyfC_hxRTm9zATK5cWv-TFt7XqDHOj?usp=drive_link)**
+
 ## Setup
 
 Requires Flutter 3.32 or later.
